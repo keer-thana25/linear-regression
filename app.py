@@ -59,27 +59,64 @@ if 'y_train' not in st.session_state:
     st.session_state.y_train = None
 if 'y_test' not in st.session_state:
     st.session_state.y_test = None
+if 'current_step' not in st.session_state:
+    st.session_state.current_step = 1
 
 # =====================================================
 # SIDEBAR NAVIGATION
 # =====================================================
-st.sidebar.title("🧭 Pipeline Steps")
+st.sidebar.title("🧭 Navigation")
+
+# Step names without numbers
+step_names = {
+    1: "Upload Dataset",
+    2: "Understand Dataset",
+    3: "Data Cleaning",
+    4: "Feature Selection",
+    5: "Visualization",
+    6: "Train/Test Split",
+    7: "Model Training",
+    8: "Prediction",
+    9: "Model Evaluation"
+}
+
+# Navigation buttons in sidebar
+st.sidebar.markdown("### Current Step")
+st.sidebar.info(f"**{st.session_state.current_step}. {step_names[st.session_state.current_step]}**")
+
 st.sidebar.markdown("---")
 
-# Step options
-steps = [
-    "Step 1: Upload Dataset",
-    "Step 2: Understand Dataset",
-    "Step 3: Data Cleaning",
-    "Step 4: Feature Selection",
-    "Step 5: Visualization",
-    "Step 6: Train/Test Split",
-    "Step 7: Model Training",
-    "Step 8: Prediction",
-    "Step 9: Model Evaluation"
-]
+# Previous and Next buttons
+col1, col2 = st.sidebar.columns(2)
 
-selected_step = st.sidebar.radio("Select Step:", steps)
+with col1:
+    if st.session_state.current_step > 1:
+        if st.sidebar.button("⬅️ Previous"):
+            st.session_state.current_step -= 1
+            st.rerun()
+
+with col2:
+    if st.session_state.current_step < 9:
+        if st.sidebar.button("Next ➡️"):
+            st.session_state.current_step += 1
+            st.rerun()
+
+st.sidebar.markdown("---")
+
+# Quick jump to any step
+st.sidebar.markdown("### Jump to Step")
+selected_step = st.sidebar.selectbox(
+    "Go to:",
+    options=list(step_names.values()),
+    index=st.session_state.current_step - 1,
+    key="step_selector"
+)
+
+# Update current step if different
+new_step = list(step_names.keys())[list(step_names.values()).index(selected_step)]
+if new_step != st.session_state.current_step:
+    st.session_state.current_step = new_step
+    st.rerun()
 
 st.sidebar.markdown("---")
 
@@ -91,7 +128,11 @@ if st.sidebar.button("🔄 Reset Pipeline"):
     st.session_state.feature_variables = None
     st.session_state.model = None
     st.session_state.predictions = None
+    st.session_state.current_step = 1
     st.rerun()
+
+# Get current step
+current_step = st.session_state.current_step
 
 # =====================================================
 # MAIN HEADER
@@ -101,13 +142,18 @@ st.markdown("""
     📊 Machine Learning Pipeline - Linear Regression
 </h1>
 """, unsafe_allow_html=True)
+
+# Progress indicator
+progress = current_step / 9
+st.progress(progress)
+st.markdown(f"**Step {current_step} of 9**: {step_names[current_step]}")
 st.markdown("---")
 
 # =====================================================
 # STEP 1: UPLOAD DATASET
 # =====================================================
-if "Step 1" in selected_step:
-    st.markdown("## 📁 Step 1: Upload Dataset")
+if current_step == 1:
+    st.markdown("## 📁 Upload Dataset")
     st.markdown("Upload a CSV file to begin the ML pipeline.")
     
     uploaded_file = st.file_uploader(
@@ -146,11 +192,11 @@ if "Step 1" in selected_step:
 # =====================================================
 # STEP 2: UNDERSTAND DATASET
 # =====================================================
-elif "Step 2" in selected_step:
-    st.markdown("## 🔍 Step 2: Understand Dataset")
+elif current_step == 2:
+    st.markdown("## 🔍 Understand Dataset")
     
     if st.session_state.data is None:
-        st.warning("⚠️ Please upload a dataset first (Step 1).")
+        st.warning("⚠️ Please upload a dataset first.")
     else:
         df = st.session_state.data
         
@@ -187,11 +233,11 @@ elif "Step 2" in selected_step:
 # =====================================================
 # STEP 3: DATA CLEANING
 # =====================================================
-elif "Step 3" in selected_step:
-    st.markdown("## 🧹 Step 3: Data Cleaning")
+elif current_step == 3:
+    st.markdown("## 🧹 Data Cleaning")
     
     if st.session_state.data is None:
-        st.warning("⚠️ Please upload a dataset first (Step 1).")
+        st.warning("⚠️ Please upload a dataset first.")
     else:
         df = st.session_state.data
         
@@ -260,11 +306,11 @@ elif "Step 3" in selected_step:
 # =====================================================
 # STEP 4: FEATURE SELECTION
 # =====================================================
-elif "Step 4" in selected_step:
-    st.markdown("## 🎯 Step 4: Feature Selection")
+elif current_step == 4:
+    st.markdown("## 🎯 Feature Selection")
     
     if st.session_state.data is None:
-        st.warning("⚠️ Please upload a dataset first (Step 1).")
+        st.warning("⚠️ Please upload a dataset first.")
     else:
         df = st.session_state.cleaned_data if st.session_state.cleaned_data is not None else st.session_state.data
         
@@ -306,11 +352,11 @@ elif "Step 4" in selected_step:
 # =====================================================
 # STEP 5: VISUALIZATION
 # =====================================================
-elif "Step 5" in selected_step:
-    st.markdown("## 📈 Step 5: Visualization")
+elif current_step == 5:
+    st.markdown("## 📈 Visualization")
     
     if st.session_state.data is None:
-        st.warning("⚠️ Please upload a dataset first (Step 1).")
+        st.warning("⚠️ Please upload a dataset first.")
     else:
         df = st.session_state.cleaned_data if st.session_state.cleaned_data is not None else st.session_state.data
         
@@ -390,7 +436,7 @@ elif "Step 5" in selected_step:
                 plt.tight_layout()
                 st.pyplot(fig)
             else:
-                st.warning("Please select target and features in Step 4 first.")
+                st.warning("Please select target and features in Feature Selection first.")
         
         elif viz_type == "Line Plots":
             st.markdown("### Line Plots for Numeric Columns")
@@ -408,13 +454,13 @@ elif "Step 5" in selected_step:
 # =====================================================
 # STEP 6: TRAIN/TEST SPLIT
 # =====================================================
-elif "Step 6" in selected_step:
-    st.markdown("## ✂️ Step 6: Train/Test Split")
+elif current_step == 6:
+    st.markdown("## ✂️ Train/Test Split")
     
     if st.session_state.data is None:
-        st.warning("⚠️ Please upload a dataset first (Step 1).")
+        st.warning("⚠️ Please upload a dataset first.")
     elif st.session_state.target_variable is None or st.session_state.feature_variables is None:
-        st.warning("⚠️ Please select target and features in Step 4 first.")
+        st.warning("⚠️ Please select target and features first.")
     else:
         df = st.session_state.cleaned_data if st.session_state.cleaned_data is not None else st.session_state.data
         
@@ -453,11 +499,11 @@ elif "Step 6" in selected_step:
 # =====================================================
 # STEP 7: MODEL TRAINING
 # =====================================================
-elif "Step 7" in selected_step:
-    st.markdown("## 🤖 Step 7: Model Training")
+elif current_step == 7:
+    st.markdown("## 🤖 Model Training")
     
     if st.session_state.X_train is None:
-        st.warning("⚠️ Please split the data in Step 6 first.")
+        st.warning("⚠️ Please split the data first.")
     else:
         X_train = st.session_state.X_train
         y_train = st.session_state.y_train
@@ -492,11 +538,11 @@ elif "Step 7" in selected_step:
 # =====================================================
 # STEP 8: PREDICTION
 # =====================================================
-elif "Step 8" in selected_step:
-    st.markdown("## 🔮 Step 8: Prediction")
+elif current_step == 8:
+    st.markdown("## 🔮 Prediction")
     
     if st.session_state.model is None:
-        st.warning("⚠️ Please train the model in Step 7 first.")
+        st.warning("⚠️ Please train the model first.")
     else:
         model = st.session_state.model
         X_test = st.session_state.X_test
@@ -520,11 +566,11 @@ elif "Step 8" in selected_step:
 # =====================================================
 # STEP 9: MODEL EVALUATION
 # =====================================================
-elif "Step 9" in selected_step:
-    st.markdown("## 📉 Step 9: Model Evaluation")
+elif current_step == 9:
+    st.markdown("## 📉 Model Evaluation")
     
     if st.session_state.predictions is None:
-        st.warning("⚠️ Please generate predictions in Step 8 first.")
+        st.warning("⚠️ Please generate predictions first.")
     else:
         y_test = st.session_state.y_test
         predictions = st.session_state.predictions
@@ -600,6 +646,6 @@ elif "Step 9" in selected_step:
 st.markdown("---")
 st.markdown("""
 <div style='text-align: center; color: #888;'>
-    <p> Built with Streamlit & Scikit-learn</p>
+    <p>ML Pipeline Application | Built with Streamlit & Scikit-learn</p>
 </div>
 """, unsafe_allow_html=True)
