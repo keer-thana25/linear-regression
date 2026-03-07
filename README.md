@@ -180,4 +180,8 @@ Possible enhancements include:
 Developed as a **Machine Learning learning project using Streamlit** to demonstrate a full ML workflow from data processing to model evaluation.
 
 ---
+## 🌐 Live Demo
 
+Try the application here:
+
+https://linear-regressionmodel.streamlit.app/
